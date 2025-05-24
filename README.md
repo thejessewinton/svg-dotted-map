@@ -63,6 +63,7 @@ export const DottedMap = () => {
             cy={point.y}
             r={0.25}
             fill="#eee"
+            key={point.x}
           />
         );
       })}
@@ -73,6 +74,7 @@ export const DottedMap = () => {
             cy={marker.y}
             r={marker.size ?? 0.25}
             fill="#000"
+            key={marker.x}
           />
         );
       })}
