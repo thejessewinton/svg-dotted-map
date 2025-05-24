@@ -1,0 +1,48 @@
+{
+  "name": "svg-dotted-map",
+  "version": "0.0.0",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "map",
+    "dotted map",
+    "svg map",
+    "svg",
+    "stylized map"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "tsc",
+    "format": "biome check .",
+    "format:fix": "biome check . --write",
+    "release": "pnpm run build && changeset version && changeset publish"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@changesets/cli": "^2.29.4",
+    "@types/node": "^20.11.24",
+    "@types/proj4": "^2.5.6",
+    "tsup": "^8.3.5",
+    "typescript": "5.7.2"
+  },
+  "dependencies": {
+    "@turf/boolean-point-in-polygon": "^7.2.0",
+    "proj4": "^2.17.0",
+    "zod": "^3.25.28"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thejessewinton/svg-dotted-map"
+  }
+}
