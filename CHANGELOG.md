@@ -1,5 +1,11 @@
 # svg-dotted-map
 
+## 0.5.0
+
+### Minor Changes
+
+- Minify JSON and clean up functions.
+
 ## 0.4.0
 
 ### Minor Changes
