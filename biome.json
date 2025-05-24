@@ -51,6 +51,11 @@
           "level": "warn"
         }
       },
+      "performance": {
+        "noAccumulatingSpread": {
+          "level": "off"
+        }
+      },
       "security": {
         "noDangerouslySetInnerHtml": {
           "level": "off"

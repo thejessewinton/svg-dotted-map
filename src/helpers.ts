@@ -77,9 +77,10 @@ export const geojsonToMultiPolygons = (geojson: GeoJSON): GeoJsonFeature => {
     MultiPolygonGeometry['coordinates']
   >((poly, feature) => {
     if (feature.geometry.type === 'Polygon') {
-      poly.push(feature.geometry.coordinates);
+      return [...poly, feature.geometry.coordinates];
+    } else {
+      return [...poly, ...feature.geometry.coordinates];
     }
-    return poly;
   }, []);
 
   return {
