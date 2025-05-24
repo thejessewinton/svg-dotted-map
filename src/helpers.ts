@@ -1,7 +1,7 @@
 import inside from '@turf/boolean-point-in-polygon';
 import proj4 from 'proj4';
 
-import geojsonWorld from './countries.min.geo.json';
+import geojsonWorld from './countries.geo.json';
 import type {
   CreateMapOptions,
   GeoJSON,
