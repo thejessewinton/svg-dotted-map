@@ -38,8 +38,7 @@
   },
   "dependencies": {
     "@turf/boolean-point-in-polygon": "^7.2.0",
-    "proj4": "^2.17.0",
-    "zod": "^3.25.28"
+    "proj4": "^2.17.0"
   },
   "repository": {
     "type": "git",

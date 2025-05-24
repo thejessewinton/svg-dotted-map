@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["node_modules", "dist", ".next", ".turbo"]
+    "ignore": ["node_modules", "dist", "src/countries.min.geo.json"]
   },
   "formatter": {
     "enabled": true,

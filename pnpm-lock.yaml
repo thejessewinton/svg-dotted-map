@@ -14,9 +14,6 @@ importers:
       proj4:
         specifier: ^2.17.0
         version: 2.17.0
-      zod:
-        specifier: ^3.25.28
-        version: 3.25.28
     devDependencies:
       '@biomejs/biome':
         specifier: 1.9.4
@@ -1079,9 +1076,6 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
-  zod@3.25.28:
-    resolution: {integrity: sha512-/nt/67WYKnr5by3YS7LroZJbtcCBurDKKPBPWWzaxvVCGuG/NOsiKkrjoOhI8mJ+SQUXEbUzeB3S+6XDUEEj7Q==}
-
 snapshots:
 
   '@babel/runtime@7.27.1': {}
@@ -2062,5 +2056,3 @@ snapshots:
       ansi-styles: 6.2.1
       string-width: 5.1.2
       strip-ansi: 7.1.0
-
-  zod@3.25.28: {}
