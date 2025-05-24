@@ -23,13 +23,6 @@ export const createMap = <MarkerData>({
     columns,
   });
 
-  console.log('Points range:', {
-    maxX: Math.max(...Object.values(points).map((p) => p.x)),
-    maxY: Math.max(...Object.values(points).map((p) => p.y)),
-    width: height * 2,
-    height,
-  });
-
   const markerPoints = markers.map((marker) => {
     const { lat, lng, size, ...markerData } = marker;
     const [googleX, googleY] = proj4('GOOGLE', [lng, lat]);
@@ -56,11 +49,6 @@ export const createMap = <MarkerData>({
       y: localy,
       ...markerData,
     };
-  });
-
-  console.log('Markers range:', {
-    maxX: Math.max(...markerPoints.map((m) => m.x)),
-    maxY: Math.max(...markerPoints.map((m) => m.y)),
   });
 
   return {
