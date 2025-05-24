@@ -52,6 +52,7 @@ export type Marker<MarkerData> = {
 export interface CreateMapOptions<T = void> {
   height: number;
   width: number;
+  radius?: number;
   countries?: string[];
   mapSamples?: number;
   region?: Region;

@@ -8,6 +8,7 @@ export const createMap = <MarkerData>({
   countries,
   region,
   markers,
+  radius = 0.3,
   mapSamples = 6000,
 }: CreateMapOptions<MarkerData>) => {
   const aspect = width / height;
@@ -21,6 +22,7 @@ export const createMap = <MarkerData>({
     region,
     rows,
     columns,
+    radius,
   });
 
   const markerPoints = markers.map((marker) => {
@@ -33,8 +35,9 @@ export const createMap = <MarkerData>({
     const col = Math.round(normalizedX * (columns - 1));
     const row = Math.round(normalizedY * (rows - 1));
 
-    const localx = (col / (columns - 1)) * width;
-    const localy = (row / (rows - 1)) * height;
+    const margin = radius * 1.25;
+    const localx = margin + (col / (columns - 1)) * (width - 2 * margin);
+    const localy = margin + (row / (rows - 1)) * (height - 2 * margin);
 
     const key = `${Math.round(localx)};${Math.round(localy)}`;
     if (!points[key]) {

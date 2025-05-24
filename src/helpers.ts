@@ -120,7 +120,7 @@ type MapPointsResult = {
 const mapPointsCache = new Map<string, MapPointsResult>();
 
 interface GetMapPoints
-  extends Pick<CreateMapOptions, 'height' | 'width' | 'countries' | 'region'> {
+  extends Omit<CreateMapOptions, 'markers' | 'mapSamples'> {
   rows: number;
   columns: number;
 }
@@ -129,15 +129,15 @@ export const getMapPoints = ({
   height = 0,
   width = 0,
   countries = [],
-  region,
   rows,
   columns,
+  region,
+  radius = 0.3,
 }: GetMapPoints) => {
   const key = getMapPointsKey({
     height,
     width,
     countries,
-    region,
   });
 
   if (mapPointsCache.has(key)) {
@@ -152,6 +152,7 @@ export const getMapPoints = ({
         .map((country) => geojsonByCountry[country])
         .filter(Boolean),
     };
+
     if (!region) {
       region = computeGeojsonBox(geojson);
     }
@@ -176,8 +177,9 @@ export const getMapPoints = ({
 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < columns; col++) {
-      const localx = (col / (columns - 1)) * width;
-      const localy = (row / (rows - 1)) * height;
+      const margin = radius * 1.25;
+      const localx = margin + (col / (columns - 1)) * (width - 2 * margin);
+      const localy = margin + (row / (rows - 1)) * (height - 2 * margin);
 
       const pointGoogle = [
         (localx / width) * X_RANGE + X_MIN,
