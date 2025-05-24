@@ -1,5 +1,11 @@
 # svg-dotted-map
 
+## 0.4.0
+
+### Minor Changes
+
+- 6e62040: Actual release
+
 ## 0.3.0
 
 ### Minor Changes
