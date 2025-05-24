@@ -9,7 +9,7 @@ A lightweight utility to create beautiful, stylized SVG maps. Heavily based on t
 First, install `svg-dotted-map`.
 
 ```bash
-pnpm install @tinylight-ui/dotted-map
+pnpm install svg-dotted-map
 ```
 
 Then, import it into your app:
