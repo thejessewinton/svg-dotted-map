@@ -1,5 +1,11 @@
 # svg-dotted-map
 
+## 1.0.1
+
+### Patch Changes
+
+- 9c79d15: Update docs
+
 ## 1.0.0
 
 ### Major Changes
