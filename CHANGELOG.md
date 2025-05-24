@@ -1,5 +1,11 @@
 # svg-dotted-map
 
+## 1.1.0
+
+### Minor Changes
+
+- dd8c87e: Reduce bundle size further
+
 ## 1.0.1
 
 ### Patch Changes
