@@ -1,6 +1,6 @@
 # svg-dotted-map
 
-A lightweight utility to create good looking, stylized SVG maps. Heavily based on the [Dotted Map](https://github.com/NTag/dotted-map/tree/main) library, with more customization.
+A lightweight utility to create beautiful, stylized SVG maps. Heavily based on the [Dotted Map](https://github.com/NTag/dotted-map/tree/main) library, with more customization.
 
 ---
 
