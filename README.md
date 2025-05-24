@@ -50,7 +50,7 @@ const { points, markers } = createMap({
 });
 ```
 
-After creating a map, render it as an SVG however you'd like. This example is using React:
+After creating a map, render it as an SVG, with whatever customizations you'd like. This example uses React:
 
 ```tsx
 export const DottedMap = () => {
@@ -62,7 +62,7 @@ export const DottedMap = () => {
             cx={point.x}
             cy={point.y}
             r={0.25}
-            fill="#eee"
+            fill="#ccc"
             key={point.x}
           />
         );
@@ -82,3 +82,8 @@ export const DottedMap = () => {
   );
 };
 ```
+
+## Example
+
+![a dotted map on an abstract background](https://raw.githubusercontent.com/thejessewinton/svg-dotted-map/refs/heads/main/image.jpeg "SVG Dotted Map")
+
