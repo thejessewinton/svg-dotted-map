@@ -1,5 +1,12 @@
 # svg-dotted-map
 
+## 0.3.0
+
+### Minor Changes
+
+- cd1cddf: Minify JSON; fix coordinates.
+- 131766f: Bring back full geojson
+
 ## 0.2.0
 
 ### Minor Changes
