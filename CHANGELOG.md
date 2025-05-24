@@ -1,5 +1,11 @@
 # svg-dotted-map
 
+## 1.0.0
+
+### Major Changes
+
+- 28f836a: Initial major release
+
 ## 0.5.0
 
 ### Minor Changes
