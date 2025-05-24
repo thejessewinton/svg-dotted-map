@@ -72,3 +72,15 @@ export interface BoundingBox {
   lat: { min: number; max: number };
   lng: { min: number; max: number };
 }
+
+export type Coordinate = [number, number];
+export type LinearRing = Coordinate[];
+export type Polygon = LinearRing[];
+export type MultiPolygon = Polygon[];
+
+export interface PolygonFeature {
+  geometry: {
+    type: 'Polygon' | 'MultiPolygon';
+    coordinates: Polygon | MultiPolygon;
+  };
+}
