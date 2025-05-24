@@ -1,7 +1,7 @@
 import inside from '@turf/boolean-point-in-polygon';
 import proj4 from 'proj4';
 
-import geojsonWorld from './countries.geo.json';
+import geojsonWorld from './countries.min.geo.json';
 import type {
   CreateMapOptions,
   GeoJSON,
@@ -175,20 +175,16 @@ export const getMapPoints = ({
 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < columns; col++) {
-      const normalizedX = col / (columns - 1);
-      const normalizedY = row / (rows - 1);
+      const localx = (col / (columns - 1)) * width;
+      const localy = (row / (rows - 1)) * height;
 
       const pointGoogle = [
-        normalizedX * X_RANGE + X_MIN,
-        Y_MAX - normalizedY * Y_RANGE,
+        (localx / width) * X_RANGE + X_MIN,
+        Y_MAX - (localy / height) * Y_RANGE,
       ];
       const wgs84Point = proj4('GOOGLE', 'WGS84', pointGoogle);
 
       if (inside(wgs84Point, poly)) {
-        const margin = 12;
-        const localx = margin + normalizedX * (width - 2 * margin);
-        const localy = margin + normalizedY * (height - 2 * margin);
-
         const key = `${Math.round(localx)};${Math.round(localy)}`;
         points[key] = {
           x: localx,
