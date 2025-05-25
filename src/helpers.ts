@@ -106,32 +106,6 @@ export const geojsonToMultiPolygons = (geojson: GeoJSON): GeoJsonFeature => {
   };
 };
 
-const getMapPointsKey = ({
-  height = 0,
-  width = 0,
-  countries = [],
-  region,
-}: Pick<CreateMapOptions, 'height' | 'width' | 'countries' | 'region'>) => {
-  const sortedCountries = countries.length > 0 ? [...countries].sort() : [];
-  return `${height}:${width}:${sortedCountries.join(',')}:${
-    region
-      ? `${region.lat.min},${region.lat.max},${region.lng.min},${region.lng.max}`
-      : ''
-  }`;
-};
-
-type MapPointsResult = {
-  points: Record<string, Point>;
-  X_MIN: number;
-  Y_MAX: number;
-  X_RANGE: number;
-  Y_RANGE: number;
-  height: number;
-  width: number;
-};
-
-const mapPointsCache = new Map<string, MapPointsResult>();
-
 interface GetMapPoints
   extends Omit<CreateMapOptions, 'markers' | 'mapSamples'> {
   rows: number;
@@ -147,11 +121,6 @@ export const getMapPoints = ({
   region,
   radius = 0.3,
 }: GetMapPoints) => {
-  const key = getMapPointsKey({ height, width, countries, region });
-
-  const cached = mapPointsCache.get(key);
-  if (cached) return cached;
-
   let geojson: GeoJSON = geojsonWorld as GeoJSON;
   if (countries.length > 0) {
     const countryMap = getGeojsonByCountry(geojson);
@@ -220,7 +189,6 @@ export const getMapPoints = ({
     width,
   };
 
-  mapPointsCache.set(key, result);
   return result;
 };
 

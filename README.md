@@ -1,6 +1,6 @@
 # svg-dotted-map
 
-A lightweight utility to create beautiful, stylized SVG maps. Heavily based on the [Dotted Map](https://github.com/NTag/dotted-map/tree/main) library, with more customization.
+A lightweight utility to create beautiful, SVG maps, with a bring your own styles mentality. Heavily based on the [Dotted Map](https://github.com/NTag/dotted-map/tree/main) library, with more customization.
 
 ---
 
@@ -23,10 +23,18 @@ import { createMap } from "svg-dotted-map";
 Create a map using the `createMap` function.
 
 ```typescript
-const { points, markers } = createMap({
+const { points, addMarkers } = createMap({
   width: 150,
   height: 75,
-  markers: [
+  mapSamples: 4500,
+});
+```
+
+`createMap` returns the `points`, which are cached coordinates of the basic points, and an `addMarkers` function that you pass your markers into.
+
+```typescript
+const markers = addMarkers(
+  [
     {
       lat: 40.7128,
       lng: -74.006,
@@ -45,9 +53,8 @@ const { points, markers } = createMap({
       lat: -33.8688,
       lng: 151.2093,
     }, // Sydney
-  ],
-  mapSamples: 4500,
-});
+  ]
+);
 ```
 
 After creating a map, render it as an SVG, with whatever customizations you'd like. This example uses React:

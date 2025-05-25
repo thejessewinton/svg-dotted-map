@@ -43,21 +43,21 @@ export interface Region {
   lng: { min: number; max: number };
 }
 
-export type Marker<MarkerData> = {
+export type Marker<MarkerData = void> = {
   lat: number;
   lng: number;
   size?: number;
 } & MarkerData;
 
-export interface CreateMapOptions<T = void> {
+export interface CreateMapOptions {
   height: number;
   width: number;
   radius?: number;
   countries?: string[];
   mapSamples?: number;
   region?: Region;
-  markers: Marker<T>[];
 }
+
 export interface Pin {
   lat: number;
   lng: number;
@@ -84,3 +84,13 @@ export interface PolygonFeature {
     coordinates: Polygon | MultiPolygon;
   };
 }
+
+export type MapPointsResult = {
+  points: Record<string, Point>;
+  X_MIN: number;
+  Y_MAX: number;
+  X_RANGE: number;
+  Y_RANGE: number;
+  height: number;
+  width: number;
+};
