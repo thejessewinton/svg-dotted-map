@@ -1,5 +1,11 @@
 # svg-dotted-map
 
+## 2.0.1
+
+### Patch Changes
+
+- 0b4e487: Better rendering of polygons
+
 ## 2.0.0
 
 ### Major Changes
