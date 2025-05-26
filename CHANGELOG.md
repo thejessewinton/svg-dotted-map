@@ -1,5 +1,11 @@
 # svg-dotted-map
 
+## 2.0.0
+
+### Major Changes
+
+- 573489a: New API for better performance.
+
 ## 1.1.0
 
 ### Minor Changes

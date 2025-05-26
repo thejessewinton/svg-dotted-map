@@ -1,4 +1,5 @@
 import geojsonWorld from './countries.geo.json';
+
 import type {
   Coordinate,
   CreateMapOptions,
@@ -26,7 +27,7 @@ export const toWebMercator = (lng: number, lat: number): [number, number] => {
   return [x, y];
 };
 
-export const computeGeojsonBox = (
+const computeGeojsonBox = (
   geojson: GeoJSON | GeoJsonFeature | Geometry
 ): Region => {
   if ('type' in geojson) {
@@ -42,37 +43,15 @@ export const computeGeojsonBox = (
           max: Math.max(...boxes.map((box) => box.lng.max)),
         },
       };
-    } else if (geojson.type === 'Feature') {
-      return computeGeojsonBox(geojson.geometry);
-    } else if (geojson.type === 'MultiPolygon') {
-      const coords = geojson.coordinates.flat(2);
-      const latitudes = coords.map(([_, lat]) => lat);
-      const longitudes = coords.map(([lng, _]) => lng);
-
-      return {
-        lat: { min: Math.min(...latitudes), max: Math.max(...latitudes) },
-        lng: { min: Math.min(...longitudes), max: Math.max(...longitudes) },
-      };
-    } else if (geojson.type === 'Polygon') {
-      const coords = geojson.coordinates.flat();
-      const latitudes = coords.map(([_, lat]) => lat);
-      const longitudes = coords.map(([lng, _]) => lng);
-
-      return {
-        lat: { min: Math.min(...latitudes), max: Math.max(...latitudes) },
-        lng: { min: Math.min(...longitudes), max: Math.max(...longitudes) },
-      };
     }
   }
 
-  throw new Error(`Unknown or unsupported geojson structure`);
+  throw new Error('Unknown or unsupported geojson structure');
 };
 
 const countryCache = new WeakMap<GeoJSON, Record<string, GeoJsonFeature>>();
 
-export const getGeojsonByCountry = (
-  geojson: GeoJSON = geojsonWorld as GeoJSON
-) => {
+const getGeojsonByCountry = (geojson: GeoJSON = geojsonWorld as GeoJSON) => {
   if (!countryCache.has(geojson)) {
     const countries = geojson.features.reduce<Record<string, GeoJsonFeature>>(
       (acc, feature) => {
@@ -126,7 +105,9 @@ export const getMapPoints = ({
     const countryMap = getGeojsonByCountry(geojson);
     geojson = {
       type: 'FeatureCollection',
-      features: countries.map((country) => countryMap[country]).filter(Boolean),
+      features: countries
+        .map((country) => countryMap[country])
+        .filter((feature): feature is GeoJsonFeature => feature !== undefined),
     };
 
     if (!region) {
@@ -136,10 +117,24 @@ export const getMapPoints = ({
     region = DEFAULT_WORLD_REGION;
   }
 
+  const clampedRegion = {
+    lat: {
+      min: Math.max(region.lat.min, -85),
+      max: Math.min(region.lat.max, 85),
+    },
+    lng: region.lng,
+  };
+
   const poly = geojsonToMultiPolygons(geojson);
 
-  const [X_MIN, Y_MIN] = toWebMercator(region.lng.min, region.lat.min);
-  const [X_MAX, Y_MAX] = toWebMercator(region.lng.max, region.lat.max);
+  const [X_MIN, Y_MIN] = toWebMercator(
+    clampedRegion.lng.min,
+    clampedRegion.lat.min
+  );
+  const [X_MAX, Y_MAX] = toWebMercator(
+    clampedRegion.lng.max,
+    clampedRegion.lat.max
+  );
   const X_RANGE = X_MAX - X_MIN;
   const Y_RANGE = Y_MAX - Y_MIN;
 
@@ -154,12 +149,17 @@ export const getMapPoints = ({
   const widthRange = width - 2 * margin;
   const heightRange = height - 2 * margin;
 
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < columns; col++) {
-      const localx = margin + (col / (columns - 1)) * widthRange;
-      const localy = margin + (row / (rows - 1)) * heightRange;
+  // Increase sampling density for better coverage
+  const actualRows = Math.max(rows, Math.ceil(rows * 1.5));
+  const actualCols = Math.max(columns, Math.ceil(columns * 1.5));
 
-      const pointMercator = [
+  for (let row = 0; row < actualRows; row++) {
+    for (let col = 0; col < actualCols; col++) {
+      // Use the original grid for positioning but sample more densely
+      const localx = margin + (col / (actualCols - 1)) * widthRange;
+      const localy = margin + (row / (actualRows - 1)) * heightRange;
+
+      const pointMercator: [number, number] = [
         (localx / width) * X_RANGE + X_MIN,
         Y_MAX - (localy / height) * Y_RANGE,
       ];
@@ -170,11 +170,20 @@ export const getMapPoints = ({
           360) /
           Math.PI -
         90;
-      const wgs84Point: [number, number] = [lng, lat];
+
+      // Clamp coordinates to valid ranges
+      const clampedLng = Math.max(-180, Math.min(180, lng));
+      const clampedLat = Math.max(-85, Math.min(85, lat));
+      const wgs84Point: [number, number] = [clampedLng, clampedLat];
 
       if (inside(wgs84Point, poly)) {
-        const key = `${Math.round(localx)};${Math.round(localy)}`;
-        points[key] = { x: localx, y: localy };
+        const gridCol = Math.round((col / actualCols) * (columns - 1));
+        const gridRow = Math.round((row / actualRows) * (rows - 1));
+        const gridX = margin + (gridCol / (columns - 1)) * widthRange;
+        const gridY = margin + (gridRow / (rows - 1)) * heightRange;
+
+        const key = `${Math.round(gridX)};${Math.round(gridY)}`;
+        points[key] = { x: gridX, y: gridY };
       }
     }
   }
@@ -192,13 +201,17 @@ export const getMapPoints = ({
   return result;
 };
 
-const pointInPolygon = (point: Coordinate, polygon: LinearRing): boolean => {
+const pointInPolygon = (point: Coordinate, polygon: LinearRing) => {
   const [x, y] = point;
   let inside = false;
 
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const [xi, yi] = polygon[i];
-    const [xj, yj] = polygon[j];
+    const pointI = polygon[i];
+    const pointJ = polygon[j];
+    if (!pointI || !pointJ) continue;
+
+    const [xi, yi] = pointI;
+    const [xj, yj] = pointJ;
 
     if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
       inside = !inside;
@@ -212,12 +225,14 @@ const pointInPolygonWithHoles = (
   point: Coordinate,
   polygon: Polygon
 ): boolean => {
-  if (!pointInPolygon(point, polygon[0])) {
+  const outerRing = polygon[0];
+  if (!outerRing || !pointInPolygon(point, outerRing)) {
     return false;
   }
 
   for (let i = 1; i < polygon.length; i++) {
-    if (pointInPolygon(point, polygon[i])) {
+    const hole = polygon[i];
+    if (hole && pointInPolygon(point, hole)) {
       return false;
     }
   }
@@ -225,17 +240,11 @@ const pointInPolygonWithHoles = (
   return true;
 };
 
-export const inside = (point: Coordinate, feature: PolygonFeature): boolean => {
+const inside = (point: Coordinate, feature: PolygonFeature) => {
   const { geometry } = feature;
 
-  if (geometry.type === 'Polygon') {
-    return pointInPolygonWithHoles(point, geometry.coordinates as Polygon);
-  } else if (geometry.type === 'MultiPolygon') {
-    const multiPolygon = geometry.coordinates as MultiPolygon;
-    return multiPolygon.some((polygon) =>
-      pointInPolygonWithHoles(point, polygon)
-    );
-  }
-
-  return false;
+  const multiPolygon = geometry.coordinates as MultiPolygon;
+  return multiPolygon.some((polygon) =>
+    pointInPolygonWithHoles(point, polygon)
+  );
 };
