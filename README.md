@@ -9,7 +9,7 @@ A lightweight utility to create beautiful, SVG maps, with a bring your own style
 
 ## Installation
 
-First, install `piri`.
+First, install `piri`:
 
 ```bash
 pnpm install piri
@@ -60,6 +60,40 @@ const markers = addMarkers(
 );
 ```
 
+`addMarkers` accepts a generic, allowing you to expand the properties passed in with full typesafety:
+
+```typescript
+const markers = addMarkers<{
+  visited?: boolean
+}>(
+  [
+    {
+      lat: 40.7128,
+      lng: -74.006,
+      size: 0.5,
+      visited: true
+    }, // New York
+    {
+
+      lat: 34.0522,
+      lng: -118.2437,
+      visited: true,
+    }, // Los Angeles
+    {
+      lat: 51.5074,
+      lng: -0.1278,
+      visited: false,
+    }, // London
+    {
+      lat: -33.8688,
+      lng: 151.2093,
+      visited: false
+    }, // Sydney
+  ]
+);
+```
+
+
 After creating a map, render it as an SVG, with whatever customizations you'd like. This example uses React:
 
 ```tsx
@@ -83,7 +117,7 @@ export const DottedMap = () => {
             cx={marker.x}
             cy={marker.y}
             r={marker.size ?? 0.25}
-            fill="#000"
+            fill={marker.visited ? "#4A0404" : "#999"}
             key={marker.x}
           />
         );
