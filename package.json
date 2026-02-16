@@ -30,5 +30,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/thejessewinton/piri"
-  }
+  },
+  "packageManager": "pnpm@10.19.0"
 }
