@@ -19,17 +19,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
+          cache: 'pnpm'
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       - name: Create Release PR or Publish
         uses: changesets/action@v1
         with:
-          publish: npx changeset publish
+          publish: pnpm run build && pnpm changeset publish
           title: 'chore: version packages'
           commit: 'chore: version packages'
         env:
