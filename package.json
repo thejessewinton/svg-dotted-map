@@ -1,6 +1,6 @@
 {
-  "name": "svg-dotted-map",
-  "version": "2.1.0",
+  "name": "piri",
+  "version": "1.0.0",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,7 +18,8 @@
     "dotted map",
     "svg map",
     "svg",
-    "stylized map"
+    "stylized map",
+    "piri"
   ],
   "scripts": {
     "build": "tsup",
@@ -37,6 +38,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/thejessewinton/svg-dotted-map"
+    "url": "https://github.com/thejessewinton/piri"
   }
 }

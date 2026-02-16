@@ -1,4 +1,4 @@
-# svg-dotted-map
+# piri
 
 A lightweight utility to create beautiful, SVG maps, with a bring your own styles mentality. Heavily based on the [Dotted Map](https://github.com/NTag/dotted-map/tree/main) library, with more customization.
 
@@ -6,16 +6,16 @@ A lightweight utility to create beautiful, SVG maps, with a bring your own style
 
 ## Installation
 
-First, install `svg-dotted-map`.
+First, install `piri`.
 
 ```bash
-pnpm install svg-dotted-map
+pnpm install piri
 ```
 
 Then, import it into your app:
 
 ```tsx
-import { createMap } from "svg-dotted-map";
+import { createMap } from "piri";
 ```
 
 ## Usage
@@ -92,5 +92,5 @@ export const DottedMap = () => {
 
 ## Example
 
-![a dotted map on an abstract background](https://raw.githubusercontent.com/thejessewinton/svg-dotted-map/refs/heads/main/image.jpeg "SVG Dotted Map")
+![a dotted map on an abstract background](https://raw.githubusercontent.com/thejessewinton/piri/refs/heads/main/image.jpeg "SVG Dotted Map")
 

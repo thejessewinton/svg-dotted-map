@@ -1,68 +1,7 @@
-# svg-dotted-map
-
-## 2.1.0
-
-### Minor Changes
-
-- Performance overhaul: fix cache bypass bug, eliminate inverse Mercator from hot loop, add bounding box pre-filtering with Float64Array-backed Mercator-space polygons, remove 1.5x oversampling, quantize GeoJSON coordinates (52% smaller), and replace unbounded Map cache with single-entry cache.
-
-## 2.0.1
-
-### Patch Changes
-
-- 0b4e487: Better rendering of polygons
-
-## 2.0.0
-
-### Major Changes
-
-- 573489a: New API for better performance.
-
-## 1.1.0
-
-### Minor Changes
-
-- dd8c87e: Reduce bundle size further
-
-## 1.0.1
-
-### Patch Changes
-
-- 9c79d15: Update docs
+# piri
 
 ## 1.0.0
 
 ### Major Changes
 
-- 28f836a: Initial major release
-
-## 0.5.0
-
-### Minor Changes
-
-- Minify JSON and clean up functions.
-
-## 0.4.0
-
-### Minor Changes
-
-- 6e62040: Actual release
-
-## 0.3.0
-
-### Minor Changes
-
-- cd1cddf: Minify JSON; fix coordinates.
-- 131766f: Bring back full geojson
-
-## 0.2.0
-
-### Minor Changes
-
-- 7cde2fe: Minify and reduce bundle size.
-
-## 0.1.0
-
-### Minor Changes
-
-- Initial publication
+- Rename and initial publication.
