@@ -6,12 +6,8 @@ import type {
   GeoJSON,
   GeoJsonFeature,
   Geometry,
-  LinearRing,
-  MultiPolygon,
   MultiPolygonGeometry,
   Point,
-  Polygon,
-  PolygonFeature,
   Region,
 } from './types';
 
@@ -44,6 +40,44 @@ const computeGeojsonBox = (
         },
       };
     }
+
+    if (geojson.type === 'Feature') {
+      return computeGeojsonBox(geojson.geometry);
+    }
+
+    if (geojson.type === 'Polygon') {
+      let minLat = Infinity;
+      let maxLat = -Infinity;
+      let minLng = Infinity;
+      let maxLng = -Infinity;
+      for (const ring of geojson.coordinates) {
+        for (const [lng, lat] of ring) {
+          if (lat < minLat) minLat = lat;
+          if (lat > maxLat) maxLat = lat;
+          if (lng < minLng) minLng = lng;
+          if (lng > maxLng) maxLng = lng;
+        }
+      }
+      return { lat: { min: minLat, max: maxLat }, lng: { min: minLng, max: maxLng } };
+    }
+
+    if (geojson.type === 'MultiPolygon') {
+      let minLat = Infinity;
+      let maxLat = -Infinity;
+      let minLng = Infinity;
+      let maxLng = -Infinity;
+      for (const polygon of geojson.coordinates) {
+        for (const ring of polygon) {
+          for (const [lng, lat] of ring) {
+            if (lat < minLat) minLat = lat;
+            if (lat > maxLat) maxLat = lat;
+            if (lng < minLng) minLng = lng;
+            if (lng > maxLng) maxLng = lng;
+          }
+        }
+      }
+      return { lat: { min: minLat, max: maxLat }, lng: { min: minLng, max: maxLng } };
+    }
   }
 
   throw new Error('Unknown or unsupported geojson structure');
@@ -65,24 +99,138 @@ const getGeojsonByCountry = (geojson: GeoJSON = geojsonWorld as GeoJSON) => {
   return countryCache.get(geojson)!;
 };
 
-export const geojsonToMultiPolygons = (geojson: GeoJSON): GeoJsonFeature => {
-  const coordinates = geojson.features.reduce<
-    MultiPolygonGeometry['coordinates']
-  >((poly, feature) => {
-    if (feature.geometry.type === 'Polygon') {
-      poly.push(feature.geometry.coordinates);
-    } else {
-      poly.push(...feature.geometry.coordinates);
-    }
-    return poly;
-  }, []);
+// Pre-processed polygon data for fast point-in-polygon tests in Mercator space.
+// Each polygon ring is stored as a flat Float64Array [x0, y0, x1, y1, ...] with
+// a bounding box for early rejection.
+interface MercatorRing {
+  coords: Float64Array;
+  length: number; // number of points (coords.length / 2)
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
 
-  return {
-    type: 'Feature',
-    id: 'multipolygon',
-    properties: { name: 'Combined Polygons' },
-    geometry: { type: 'MultiPolygon', coordinates },
-  };
+interface MercatorPolygon {
+  outer: MercatorRing;
+  holes: MercatorRing[];
+}
+
+interface PreparedGeometry {
+  polygons: MercatorPolygon[];
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
+const ringToMercator = (ring: Coordinate[]): MercatorRing => {
+  const coords = new Float64Array(ring.length * 2);
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (let i = 0; i < ring.length; i++) {
+    const [lng, lat] = ring[i];
+    const [mx, my] = toWebMercator(lng, lat);
+    coords[i * 2] = mx;
+    coords[i * 2 + 1] = my;
+    if (mx < minX) minX = mx;
+    if (mx > maxX) maxX = mx;
+    if (my < minY) minY = my;
+    if (my > maxY) maxY = my;
+  }
+
+  return { coords, length: ring.length, minX, minY, maxX, maxY };
+};
+
+const prepareGeometry = (geojson: GeoJSON): PreparedGeometry => {
+  let gMinX = Infinity;
+  let gMinY = Infinity;
+  let gMaxX = -Infinity;
+  let gMaxY = -Infinity;
+  const polygons: MercatorPolygon[] = [];
+
+  for (const feature of geojson.features) {
+    const geom = feature.geometry;
+    const polys =
+      geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+
+    for (const poly of polys) {
+      const outerRing = poly[0];
+      if (!outerRing) continue;
+
+      const outer = ringToMercator(outerRing);
+      const holes: MercatorRing[] = [];
+      for (let i = 1; i < poly.length; i++) {
+        if (poly[i]) holes.push(ringToMercator(poly[i]));
+      }
+
+      if (outer.minX < gMinX) gMinX = outer.minX;
+      if (outer.minY < gMinY) gMinY = outer.minY;
+      if (outer.maxX > gMaxX) gMaxX = outer.maxX;
+      if (outer.maxY > gMaxY) gMaxY = outer.maxY;
+
+      polygons.push({ outer, holes });
+    }
+  }
+
+  return { polygons, minX: gMinX, minY: gMinY, maxX: gMaxX, maxY: gMaxY };
+};
+
+const pointInRing = (px: number, py: number, ring: MercatorRing): boolean => {
+  // Bounding box rejection
+  if (px < ring.minX || px > ring.maxX || py < ring.minY || py > ring.maxY) {
+    return false;
+  }
+
+  const { coords, length } = ring;
+  let inside = false;
+
+  for (let i = 0, j = length - 1; i < length; j = i++) {
+    const xi = coords[i * 2];
+    const yi = coords[i * 2 + 1];
+    const xj = coords[j * 2];
+    const yj = coords[j * 2 + 1];
+
+    if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
+      inside = !inside;
+    }
+  }
+
+  return inside;
+};
+
+const insideMercator = (
+  px: number,
+  py: number,
+  prepared: PreparedGeometry
+): boolean => {
+  // Global bounding box rejection
+  if (
+    px < prepared.minX ||
+    px > prepared.maxX ||
+    py < prepared.minY ||
+    py > prepared.maxY
+  ) {
+    return false;
+  }
+
+  for (const polygon of prepared.polygons) {
+    if (!pointInRing(px, py, polygon.outer)) continue;
+
+    let inHole = false;
+    for (const hole of polygon.holes) {
+      if (pointInRing(px, py, hole)) {
+        inHole = true;
+        break;
+      }
+    }
+    if (!inHole) return true;
+  }
+
+  return false;
 };
 
 interface GetMapPoints
@@ -125,18 +273,20 @@ export const getMapPoints = ({
     lng: region.lng,
   };
 
-  const poly = geojsonToMultiPolygons(geojson);
+  // Pre-convert all polygon coordinates to Mercator space once
+  const prepared = prepareGeometry(geojson);
 
-  const [X_MIN, Y_MIN] = toWebMercator(
-    clampedRegion.lng.min,
-    clampedRegion.lat.min
-  );
+  const [X_MIN] = toWebMercator(clampedRegion.lng.min, clampedRegion.lat.min);
   const [X_MAX, Y_MAX] = toWebMercator(
     clampedRegion.lng.max,
     clampedRegion.lat.max
   );
+  const [, Y_MIN_MERC] = toWebMercator(
+    clampedRegion.lng.min,
+    clampedRegion.lat.min
+  );
   const X_RANGE = X_MAX - X_MIN;
-  const Y_RANGE = Y_MAX - Y_MIN;
+  const Y_RANGE = Y_MAX - Y_MIN_MERC;
 
   if (width <= 0) {
     width = Math.round((height * X_RANGE) / Y_RANGE);
@@ -149,46 +299,24 @@ export const getMapPoints = ({
   const widthRange = width - 2 * margin;
   const heightRange = height - 2 * margin;
 
-  // Increase sampling density for better coverage
-  const actualRows = Math.max(rows, Math.ceil(rows * 1.5));
-  const actualCols = Math.max(columns, Math.ceil(columns * 1.5));
+  // Iterate exact grid — no oversampling needed.
+  // Each grid cell is tested once; point-in-polygon runs in Mercator space directly.
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < columns; col++) {
+      const gridX = margin + (col / (columns - 1)) * widthRange;
+      const gridY = margin + (row / (rows - 1)) * heightRange;
 
-  for (let row = 0; row < actualRows; row++) {
-    for (let col = 0; col < actualCols; col++) {
-      // Use the original grid for positioning but sample more densely
-      const localx = margin + (col / (actualCols - 1)) * widthRange;
-      const localy = margin + (row / (actualRows - 1)) * heightRange;
+      // Convert grid position directly to Mercator coordinates
+      const mx = (gridX / width) * X_RANGE + X_MIN;
+      const my = Y_MAX - (gridY / height) * Y_RANGE;
 
-      const pointMercator: [number, number] = [
-        (localx / width) * X_RANGE + X_MIN,
-        Y_MAX - (localy / height) * Y_RANGE,
-      ];
-
-      const lng = (pointMercator[0] * 180) / 20037508.34;
-      const lat =
-        (Math.atan(Math.exp((pointMercator[1] * Math.PI) / 20037508.34)) *
-          360) /
-          Math.PI -
-        90;
-
-      // Clamp coordinates to valid ranges
-      const clampedLng = Math.max(-180, Math.min(180, lng));
-      const clampedLat = Math.max(-85, Math.min(85, lat));
-      const wgs84Point: [number, number] = [clampedLng, clampedLat];
-
-      if (inside(wgs84Point, poly)) {
-        const gridCol = Math.round((col / actualCols) * (columns - 1));
-        const gridRow = Math.round((row / actualRows) * (rows - 1));
-        const gridX = margin + (gridCol / (columns - 1)) * widthRange;
-        const gridY = margin + (gridRow / (rows - 1)) * heightRange;
-
-        const key = `${Math.round(gridX)};${Math.round(gridY)}`;
-        points[key] = { x: gridX, y: gridY };
+      if (insideMercator(mx, my, prepared)) {
+        points[`${col};${row}`] = { x: gridX, y: gridY };
       }
     }
   }
 
-  const result = {
+  return {
     points,
     X_MIN,
     Y_MAX,
@@ -197,54 +325,4 @@ export const getMapPoints = ({
     height,
     width,
   };
-
-  return result;
-};
-
-const pointInPolygon = (point: Coordinate, polygon: LinearRing) => {
-  const [x, y] = point;
-  let inside = false;
-
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const pointI = polygon[i];
-    const pointJ = polygon[j];
-    if (!pointI || !pointJ) continue;
-
-    const [xi, yi] = pointI;
-    const [xj, yj] = pointJ;
-
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
-      inside = !inside;
-    }
-  }
-
-  return inside;
-};
-
-const pointInPolygonWithHoles = (
-  point: Coordinate,
-  polygon: Polygon
-): boolean => {
-  const outerRing = polygon[0];
-  if (!outerRing || !pointInPolygon(point, outerRing)) {
-    return false;
-  }
-
-  for (let i = 1; i < polygon.length; i++) {
-    const hole = polygon[i];
-    if (hole && pointInPolygon(point, hole)) {
-      return false;
-    }
-  }
-
-  return true;
-};
-
-const inside = (point: Coordinate, feature: PolygonFeature) => {
-  const { geometry } = feature;
-
-  const multiPolygon = geometry.coordinates as MultiPolygon;
-  return multiPolygon.some((polygon) =>
-    pointInPolygonWithHoles(point, polygon)
-  );
 };

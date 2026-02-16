@@ -24,16 +24,6 @@ export const createMap = ({
     radius,
   });
 
-  const { points, X_MIN, Y_MAX, X_RANGE, Y_RANGE } = getMapPoints({
-    height,
-    width,
-    countries,
-    region,
-    rows,
-    columns,
-    radius,
-  });
-
   let pointsData = pointsCache.get(pointsKey);
 
   if (!pointsData) {
@@ -48,6 +38,8 @@ export const createMap = ({
     });
     pointsCache.set(pointsKey, pointsData);
   }
+
+  const { points, X_MIN, Y_MAX, X_RANGE, Y_RANGE } = pointsData;
 
   const margin = radius * 1.25;
   const widthRange = width - 2 * margin;
