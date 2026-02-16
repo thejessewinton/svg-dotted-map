@@ -2,6 +2,9 @@
 
 A lightweight utility to create beautiful, SVG maps, with a bring your own styles mentality. Heavily based on the [Dotted Map](https://github.com/NTag/dotted-map/tree/main) library, with more customization.
 
+![a dotted map on an abstract background](https://raw.githubusercontent.com/thejessewinton/piri/refs/heads/main/image.jpeg "SVG Dotted Map")
+
+
 ---
 
 ## Installation
@@ -89,8 +92,3 @@ export const DottedMap = () => {
   );
 };
 ```
-
-## Example
-
-![a dotted map on an abstract background](https://raw.githubusercontent.com/thejessewinton/piri/refs/heads/main/image.jpeg "SVG Dotted Map")
-
