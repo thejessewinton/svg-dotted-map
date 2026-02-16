@@ -102,6 +102,7 @@ describe('createMap with countries', () => {
     const { points } = createMap({
       width: 200,
       height: 100,
+      // @ts-expect-error — testing runtime behavior with an invalid code
       countries: ['ZZZZZ'],
     })
     expect(points.length).toBe(0)
