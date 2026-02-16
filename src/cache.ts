@@ -1,9 +1,9 @@
-import type { MapPointsResult, Region } from './types'
+import type { CountryCode, MapPointsResult, Region } from './types'
 
 interface CacheEntry {
   height: number
   width: number
-  countries: string[] | undefined
+  countries: CountryCode[] | undefined
   region: Region | undefined
   rows: number
   columns: number
@@ -14,8 +14,8 @@ interface CacheEntry {
 let cached: CacheEntry | null = null
 
 const arraysEqual = (
-  a: string[] | undefined,
-  b: string[] | undefined,
+  a: CountryCode[] | undefined,
+  b: CountryCode[] | undefined,
 ): boolean => {
   if (a === b) return true
   if (!a || !b || a.length !== b.length) return false
@@ -43,7 +43,7 @@ export const pointsCache = {
   get(
     height: number,
     width: number,
-    countries: string[] | undefined,
+    countries: CountryCode[] | undefined,
     region: Region | undefined,
     rows: number,
     columns: number,
@@ -67,7 +67,7 @@ export const pointsCache = {
   set(
     height: number,
     width: number,
-    countries: string[] | undefined,
+    countries: CountryCode[] | undefined,
     region: Region | undefined,
     rows: number,
     columns: number,
