@@ -5,87 +5,33 @@ import type {
   CreateMapOptions,
   GeoJSON,
   GeoJsonFeature,
-  Geometry,
-  Point,
   Region,
 } from './types'
 
-export const DEFAULT_WORLD_REGION = {
+const MERC_MAX = 20037508.34
+const MERC_FACTOR = MERC_MAX / 180
+const DEG_TO_RAD = Math.PI / 180
+const RAD_TO_DEG = 180 / Math.PI
+
+/** @internal */
+export const DEFAULT_WORLD_REGION: Region = {
   lat: { min: -56, max: 71 },
   lng: { min: -179, max: 179 },
 }
 
+/** @internal */
 export const toWebMercator = (lng: number, lat: number): [number, number] => {
-  const x = (lng * 20037508.34) / 180
-  let y = Math.log(Math.tan(((90 + lat) * Math.PI) / 360)) / (Math.PI / 180)
-  y = (y * 20037508.34) / 180
+  const x = lng * MERC_FACTOR
+  const y =
+    Math.log(Math.tan((90 + lat) * DEG_TO_RAD * 0.5)) * RAD_TO_DEG * MERC_FACTOR
   return [x, y]
 }
 
-const computeGeojsonBox = (
-  geojson: GeoJSON | GeoJsonFeature | Geometry,
-): Region => {
-  if ('type' in geojson) {
-    if (geojson.type === 'FeatureCollection') {
-      const boxes = geojson.features.map(computeGeojsonBox)
-      return {
-        lat: {
-          min: Math.min(...boxes.map((box) => box.lat.min)),
-          max: Math.max(...boxes.map((box) => box.lat.max)),
-        },
-        lng: {
-          min: Math.min(...boxes.map((box) => box.lng.min)),
-          max: Math.max(...boxes.map((box) => box.lng.max)),
-        },
-      }
-    }
-
-    if (geojson.type === 'Feature') {
-      return computeGeojsonBox(geojson.geometry)
-    }
-
-    if (geojson.type === 'Polygon') {
-      let minLat = Number.POSITIVE_INFINITY
-      let maxLat = -Number.POSITIVE_INFINITY
-      let minLng = Number.POSITIVE_INFINITY
-      let maxLng = -Number.POSITIVE_INFINITY
-      for (const ring of geojson.coordinates) {
-        for (const [lng, lat] of ring) {
-          if (lat < minLat) minLat = lat
-          if (lat > maxLat) maxLat = lat
-          if (lng < minLng) minLng = lng
-          if (lng > maxLng) maxLng = lng
-        }
-      }
-      return {
-        lat: { min: minLat, max: maxLat },
-        lng: { min: minLng, max: maxLng },
-      }
-    }
-
-    if (geojson.type === 'MultiPolygon') {
-      let minLat = Number.POSITIVE_INFINITY
-      let maxLat = -Number.POSITIVE_INFINITY
-      let minLng = Number.POSITIVE_INFINITY
-      let maxLng = -Number.POSITIVE_INFINITY
-      for (const polygon of geojson.coordinates) {
-        for (const ring of polygon) {
-          for (const [lng, lat] of ring) {
-            if (lat < minLat) minLat = lat
-            if (lat > maxLat) maxLat = lat
-            if (lng < minLng) minLng = lng
-            if (lng > maxLng) maxLng = lng
-          }
-        }
-      }
-      return {
-        lat: { min: minLat, max: maxLat },
-        lng: { min: minLng, max: maxLng },
-      }
-    }
-  }
-
-  throw new Error('Unknown or unsupported geojson structure')
+const fromWebMercator = (mx: number, my: number): [number, number] => {
+  const lng = mx / MERC_FACTOR
+  const lat =
+    Math.atan(Math.exp((my / MERC_FACTOR) * DEG_TO_RAD)) * RAD_TO_DEG * 2 - 90
+  return [lng, lat]
 }
 
 const countryCache = new WeakMap<GeoJSON, Record<string, GeoJsonFeature>>()
@@ -135,7 +81,11 @@ const ringToMercator = (ring: Coordinate[]): MercatorRing => {
 
   for (let i = 0; i < ring.length; i++) {
     const [lng, lat] = ring[i]
-    const [mx, my] = toWebMercator(lng, lat)
+    const mx = lng * MERC_FACTOR
+    const my =
+      Math.log(Math.tan((90 + lat) * DEG_TO_RAD * 0.5)) *
+      RAD_TO_DEG *
+      MERC_FACTOR
     coords[i * 2] = mx
     coords[i * 2 + 1] = my
     if (mx < minX) minX = mx
@@ -179,6 +129,27 @@ const prepareGeometry = (geojson: GeoJSON): PreparedGeometry => {
   }
 
   return { polygons, minX: gMinX, minY: gMinY, maxX: gMaxX, maxY: gMaxY }
+}
+
+let geomCacheFeatures: GeoJsonFeature[] | null = null
+let geomCacheValue: PreparedGeometry | null = null
+
+const getCachedPreparedGeometry = (geojson: GeoJSON): PreparedGeometry => {
+  const features = geojson.features
+  if (geomCacheFeatures && features.length === geomCacheFeatures.length) {
+    let match = true
+    for (let i = 0; i < features.length; i++) {
+      if (features[i] !== geomCacheFeatures[i]) {
+        match = false
+        break
+      }
+    }
+    if (match) return geomCacheValue!
+  }
+  const prepared = prepareGeometry(geojson)
+  geomCacheFeatures = features
+  geomCacheValue = prepared
+  return prepared
 }
 
 const pointInRing = (px: number, py: number, ring: MercatorRing): boolean => {
@@ -239,6 +210,7 @@ interface GetMapPoints
   columns: number
 }
 
+/** @internal */
 export const getMapPoints = ({
   height = 0,
   width = 0,
@@ -257,12 +229,21 @@ export const getMapPoints = ({
         .map((country) => countryMap[country])
         .filter((feature): feature is GeoJsonFeature => feature !== undefined),
     }
+  }
 
-    if (!region) {
-      region = computeGeojsonBox(geojson)
+  const prepared = getCachedPreparedGeometry(geojson)
+
+  if (!region) {
+    if (countries.length > 0) {
+      const [lngMin, latMin] = fromWebMercator(prepared.minX, prepared.minY)
+      const [lngMax, latMax] = fromWebMercator(prepared.maxX, prepared.maxY)
+      region = {
+        lat: { min: latMin, max: latMax },
+        lng: { min: lngMin, max: lngMax },
+      }
+    } else {
+      region = DEFAULT_WORLD_REGION
     }
-  } else if (!region) {
-    region = DEFAULT_WORLD_REGION
   }
 
   const clampedRegion = {
@@ -273,16 +254,13 @@ export const getMapPoints = ({
     lng: region.lng,
   }
 
-  const prepared = prepareGeometry(geojson)
-
-  const [X_MIN] = toWebMercator(clampedRegion.lng.min, clampedRegion.lat.min)
+  const [X_MIN, Y_MIN_MERC] = toWebMercator(
+    clampedRegion.lng.min,
+    clampedRegion.lat.min,
+  )
   const [X_MAX, Y_MAX] = toWebMercator(
     clampedRegion.lng.max,
     clampedRegion.lat.max,
-  )
-  const [, Y_MIN_MERC] = toWebMercator(
-    clampedRegion.lng.min,
-    clampedRegion.lat.min,
   )
   const X_RANGE = X_MAX - X_MIN
   const Y_RANGE = Y_MAX - Y_MIN_MERC
@@ -293,27 +271,37 @@ export const getMapPoints = ({
     height = Math.round((width * Y_RANGE) / X_RANGE)
   }
 
-  const points: Record<string, Point> = {}
   const margin = radius * 1.25
   const widthRange = width - 2 * margin
   const heightRange = height - 2 * margin
 
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < columns; col++) {
-      const gridX = margin + (col / (columns - 1)) * widthRange
-      const gridY = margin + (row / (rows - 1)) * heightRange
+  const maxPoints = rows * columns
+  const pointsXY = new Float64Array(maxPoints * 2)
+  let pointCount = 0
 
-      const mx = (gridX / width) * X_RANGE + X_MIN
-      const my = Y_MAX - (gridY / height) * Y_RANGE
+  const colScale = widthRange / (columns - 1)
+  const rowScale = heightRange / (rows - 1)
+  const xScaleInv = X_RANGE / width
+  const yScaleInv = Y_RANGE / height
+
+  for (let row = 0; row < rows; row++) {
+    const gridY = margin + row * rowScale
+    const my = Y_MAX - gridY * yScaleInv
+
+    for (let col = 0; col < columns; col++) {
+      const gridX = margin + col * colScale
+      const mx = gridX * xScaleInv + X_MIN
 
       if (insideMercator(mx, my, prepared)) {
-        points[`${col};${row}`] = { x: gridX, y: gridY }
+        pointsXY[pointCount * 2] = gridX
+        pointsXY[pointCount * 2 + 1] = gridY
+        pointCount++
       }
     }
   }
 
   return {
-    points,
+    points: pointsXY.subarray(0, pointCount * 2),
     X_MIN,
     Y_MAX,
     X_RANGE,
