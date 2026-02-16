@@ -10,24 +10,15 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "keywords": [
-    "map",
-    "dotted map",
-    "svg map",
-    "svg",
-    "stylized map",
-    "piri"
-  ],
+  "files": ["dist"],
+  "keywords": ["map", "dotted map", "svg map", "svg", "stylized map", "piri"],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "tsc",
     "format": "biome check .",
     "format:fix": "biome check . --write",
-    "release": "pnpm run build && changeset version && changeset publish"
+    "release": "pnpm run build && changeset version && changeset publish && git push --follow-tags"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
