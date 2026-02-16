@@ -1,6 +1,6 @@
 {
-  "name": "svg-dotted-map",
-  "version": "2.1.0",
+  "name": "piri",
+  "version": "1.0.0",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -10,23 +10,15 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "keywords": [
-    "map",
-    "dotted map",
-    "svg map",
-    "svg",
-    "stylized map"
-  ],
+  "files": ["dist"],
+  "keywords": ["map", "dotted map", "svg map", "svg", "stylized map", "piri"],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "tsc",
     "format": "biome check .",
     "format:fix": "biome check . --write",
-    "release": "pnpm run build && changeset version && changeset publish"
+    "release": "pnpm run build && changeset version && changeset publish && git push --follow-tags"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
@@ -37,6 +29,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/thejessewinton/svg-dotted-map"
+    "url": "https://github.com/thejessewinton/piri"
   }
 }
