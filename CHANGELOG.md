@@ -1,5 +1,11 @@
 # piri
 
+## 1.1.1
+
+### Patch Changes
+
+- [#8](https://github.com/thejessewinton/piri/pull/8) [`2818dfa`](https://github.com/thejessewinton/piri/commit/2818dfa09e3bdfaa1bc246d6e31e742c9df7ec22) Thanks [@thejessewinton](https://github.com/thejessewinton)! - Add country code types, update docs
+
 ## 1.1.0
 
 ### Minor Changes
