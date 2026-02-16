@@ -1,3 +1,4 @@
+/** @internal */
 export interface GeoJSON {
   type: 'FeatureCollection';
   features: {
@@ -18,17 +19,21 @@ export interface GeoJSON {
   }[];
 }
 
+/** @internal */
 export interface PolygonGeometry {
   type: 'Polygon';
   coordinates: [number, number][][];
 }
+/** @internal */
 export interface MultiPolygonGeometry {
   type: 'MultiPolygon';
   coordinates: [number, number][][][];
 }
 
+/** @internal */
 export type Geometry = PolygonGeometry | MultiPolygonGeometry;
 
+/** @internal */
 export interface GeoJsonFeature {
   type: 'Feature';
   id: string;
@@ -58,6 +63,7 @@ export interface CreateMapOptions {
   region?: Region;
 }
 
+/** @internal */
 export type Coordinate = [number, number];
 
 export type Point = {
@@ -65,8 +71,9 @@ export type Point = {
   y: number;
 };
 
+/** @internal */
 export type MapPointsResult = {
-  points: Record<string, Point>;
+  points: Float64Array;
   X_MIN: number;
   Y_MAX: number;
   X_RANGE: number;

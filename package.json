@@ -17,6 +17,7 @@
     "dev": "tsup --watch",
     "lint": "tsc",
     "format": "biome check .",
+    "test": "vitest run",
     "format:fix": "biome check . --write",
     "release": "pnpm run build && changeset version && changeset publish && git push --follow-tags"
   },
@@ -25,7 +26,8 @@
     "@changesets/cli": "^2.29.4",
     "@types/node": "^20.11.24",
     "tsup": "^8.3.5",
-    "typescript": "5.7.2"
+    "typescript": "5.7.2",
+    "vitest": "^4.0.18"
   },
   "repository": {
     "type": "git",
