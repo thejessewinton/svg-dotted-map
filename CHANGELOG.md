@@ -1,5 +1,11 @@
 # piri
 
+## 1.1.3
+
+### Patch Changes
+
+- [`1313de5`](https://github.com/thejessewinton/piri/commit/1313de5f46fb65c9ea564b155876d0188c600d8f) Thanks [@thejessewinton](https://github.com/thejessewinton)! - Update docs
+
 ## 1.1.1
 
 ### Patch Changes
