@@ -1,6 +1,6 @@
 # piri
 
-A lightweight utility to create beautiful, dotted SVG maps with a bring-your-own-styles mentality. Heavily based on the [Dotted Map](https://github.com/NTag/dotted-map/tree/main) library, with more customization.
+A lightweight utility to create beautiful, stylized SVG maps with a bring-your-own-styles mentality. Heavily based on the [Dotted Map](https://github.com/NTag/dotted-map/tree/main) library, with more customization.
 
 ![a dotted map on an abstract background](https://raw.githubusercontent.com/thejessewinton/piri/refs/heads/main/image.jpeg "SVG Dotted Map")
 
@@ -23,9 +23,7 @@ const { points, addMarkers } = createMap({
 });
 ```
 
-`createMap` returns `points` (an array of `{ x, y }` coordinates representing land masses on a dot grid) and `addMarkers` (a function to project lat/lng markers into the same coordinate space).
-
-All coordinates are in viewBox units — they map directly to your SVG `viewBox`.
+It's that simple. `points` represents land mass, `addMarkers` projects your markers onto the same coordinate space.
 
 ### Options
 
@@ -40,14 +38,39 @@ All coordinates are in viewBox units — they map directly to your SVG `viewBox`
 
 ### Markers
 
-```typescript
-const markers = addMarkers<{ label: string; visited: boolean }>([
-  { lat: 40.7128, lng: -74.006, label: "New York", visited: true },
-  { lat: 51.5074, lng: -0.1278, label: "London", visited: false },
+By default `addMarkers` expects an array with, at minimum, the latitude and longitude of your markers, and an optional `size` parameter.
+
+```ts
+const markers = addMarkers([
+  { 
+    lat: 40.7128, 
+    lng: -74.006, 
+    size: 0.4
+  }, // New York
+  { lat: 51.5074, 
+    lng: -0.1278 
+  }, // London
 ]);
 ```
 
-> `addMarkers` is generic — any extra properties you pass are preserved and fully typed in the output.
+#### Expanding the output
+
+`addMarkers` is generic, and any extra properties you pass in are preserved and fully typed in the output.
+
+```ts
+const markers = addMarkers<{ visited: boolean}>([
+  { 
+    lat: 40.7128, 
+    lng: -74.006, 
+    size: 0.4
+    visited: true
+  }, // New York
+  { lat: 51.5074, 
+    lng: -0.1278 
+    visited: false
+  }, // London
+]);
+```
 
 ### Rendering
 
@@ -89,4 +112,4 @@ export const DottedMap = () => {
 
 ## Caching
 
-Point calculations are cached automatically. Identical options return the same points without recalculating. The cache invalidates when any option changes.
+Point calculations are cached automatically.
