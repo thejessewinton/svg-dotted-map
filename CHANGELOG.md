@@ -1,5 +1,11 @@
 # piri
 
+## 1.1.4
+
+### Patch Changes
+
+- Add README to files array
+
 ## 1.1.3
 
 ### Patch Changes
