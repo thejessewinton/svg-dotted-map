@@ -1,5 +1,11 @@
 # piri
 
+## 1.1.5
+
+### Patch Changes
+
+- Fix for readme
+
 ## 1.1.4
 
 ### Patch Changes
