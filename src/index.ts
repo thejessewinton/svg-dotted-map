@@ -74,9 +74,11 @@ export const createMap = ({
         const localx = margin + (col / (columns - 1)) * widthRange
         const localy = margin + (row / (rows - 1)) * heightRange
 
-        const size = Math.round((marker.size ?? 1) * radius * 100) / 100
-
-        return { x: localx, y: localy, ...markerData, size } as Omit<T, 'lat' | 'lng'> & Point
+        return { x: localx, y: localy, ...markerData } as Omit<
+          T,
+          'lat' | 'lng'
+        > &
+          Point
       })
     },
   }
