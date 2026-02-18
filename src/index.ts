@@ -60,7 +60,7 @@ export const createMap = ({
 
   return {
     points,
-    addMarkers: <MarkerData>(markers: Array<Marker<MarkerData>>) => {
+    addMarkers: <T extends Marker>(markers: T[]) => {
       return markers.map((marker) => {
         const { lat, lng, ...markerData } = marker
         const [googleX, googleY] = toWebMercator(lng, lat)
@@ -74,7 +74,9 @@ export const createMap = ({
         const localx = margin + (col / (columns - 1)) * widthRange
         const localy = margin + (row / (rows - 1)) * heightRange
 
-        return { x: localx, y: localy, ...markerData }
+        const size = Math.round((marker.size ?? 1) * radius * 100) / 100
+
+        return { x: localx, y: localy, ...markerData, size } as Omit<T, 'lat' | 'lng'> & Point
       })
     },
   }

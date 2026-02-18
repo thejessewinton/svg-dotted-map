@@ -226,11 +226,12 @@ export type CountryCode =
   | 'ZMB'
   | 'ZWE'
 
-export type Marker<MarkerData = void> = {
+export type Marker = {
   lat: number;
   lng: number;
   size?: number;
-} & MarkerData;
+  [key: string]: unknown;
+};
 
 export interface CreateMapOptions {
   height: number;
