@@ -33,12 +33,12 @@ It's that simple. `points` represents land mass, `addMarkers` projects your mark
 | `height` | `number` | **required** | Height of the SVG viewBox. |
 | `mapSamples` | `number` | `6000` | Grid cells sampled. Higher = denser dots. |
 | `radius` | `number` | `0.3` | Base dot radius in viewBox units. Controls edge margin (`radius * 1.25`). |
-| `countries` | `CountryCode[]` | `undefined` | ISO 3166-1 alpha-3 codes (e.g. `["USA", "CAN"]`). Auto-fits the region to the bounding box. Fully typesafe — you get autocomplete on all ~170 supported codes. |
+| `countries` | `CountryCode[]` | `undefined` | ISO 3166-1 alpha-3 codes (e.g. `["USA", "CAN"]`). Auto-fits the region to the bounding box. |
 | `region` | `Region` | auto | Custom lat/lng bounding box. Overrides the auto-fit from `countries`. Latitudes clamped to `[-85, 85]` (Web Mercator limit). |
 
 ### Markers
 
-By default `addMarkers` expects an array with, at minimum, the latitude and longitude of your markers, and an optional `size` parameter.
+By default `addMarkers` expects an array with, at minimum, the latitude and longitude of your markers, and an optional size parameter, which you can then use to set a custom radius per marker.
 
 ```ts
 const markers = addMarkers([
@@ -55,14 +55,14 @@ const markers = addMarkers([
 
 #### Expanding the output
 
-`addMarkers` is generic, and any extra properties you pass in are preserved and fully typed in the output.
+`addMarkers` is generic, and any extra properties you pass in are inferred and fully typed in the output.
 
 ```ts
-const markers = addMarkers<{ visited: boolean}>([
+const markers = addMarkers([
   { 
     lat: 40.7128, 
     lng: -74.006, 
-    size: 0.4
+    size: 2
     visited: true
   }, // New York
   { lat: 51.5074, 
@@ -80,7 +80,7 @@ After these steps, render the map as an SVG, with whatever customizations you ne
 export const DottedMap = () => {
   const { points, addMarkers } = createMap({ width: 150, height: 75 })
 
-  const markers = addMarkers<{ visited: boolean }>([
+  const markers = addMarkers([
     { lat: 40.7128, lng: -74.006, size: 0.5, visited: true },
     { lat: 51.5074, lng: -0.1278, size: 0.5, visited: false },
   ])
