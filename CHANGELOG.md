@@ -1,5 +1,11 @@
 # piri
 
+## 1.2.0
+
+### Minor Changes
+
+- No longer generic, uses inference.
+
 ## 1.1.5
 
 ### Patch Changes
