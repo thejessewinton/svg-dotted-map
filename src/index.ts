@@ -9,9 +9,13 @@ export const createMap = ({
   region,
   radius = 0.3,
   mapSamples = 6000,
+  grid = 'vertical',
 }: CreateMapOptions) => {
   const aspect = width / height
-  const rows = Math.round(Math.sqrt(mapSamples / aspect))
+  let rows = Math.round(Math.sqrt(mapSamples / aspect))
+  if (grid === 'diagonal') {
+    rows = Math.round(rows * (2 / Math.sqrt(3)))
+  }
   const columns = Math.round(rows * aspect)
 
   let pointsData = pointsCache.get(
@@ -22,6 +26,7 @@ export const createMap = ({
     rows,
     columns,
     radius,
+    grid,
   )
 
   if (!pointsData) {
@@ -33,6 +38,7 @@ export const createMap = ({
       rows,
       columns,
       radius,
+      grid,
     })
     pointsCache.set(
       height,
@@ -42,6 +48,7 @@ export const createMap = ({
       rows,
       columns,
       radius,
+      grid,
       pointsData,
     )
   }
@@ -71,7 +78,11 @@ export const createMap = ({
         const col = Math.round(normalizedX * (columns - 1))
         const row = Math.round(normalizedY * (rows - 1))
 
-        const localx = margin + (col / (columns - 1)) * widthRange
+        const colScale = widthRange / (columns - 1)
+        let localx = margin + col * colScale
+        if (grid === 'diagonal' && row % 2 === 0) {
+          localx += colScale / 2
+        }
         const localy = margin + (row / (rows - 1)) * heightRange
 
         return { x: localx, y: localy, ...markerData } as Omit<
