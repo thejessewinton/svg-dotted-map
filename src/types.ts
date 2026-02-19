@@ -240,6 +240,7 @@ export interface CreateMapOptions {
   countries?: CountryCode[];
   mapSamples?: number;
   region?: Region;
+  grid?: 'vertical' | 'diagonal';
 }
 
 /** @internal */

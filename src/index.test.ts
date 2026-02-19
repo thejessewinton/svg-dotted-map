@@ -259,6 +259,62 @@ describe('getMapPoints', () => {
   })
 })
 
+describe('createMap with grid option', () => {
+  it('returns points with grid: diagonal', () => {
+    const result = createMap({ width: 200, height: 100, grid: 'diagonal' })
+    expect(result.points.length).toBeGreaterThan(0)
+    for (const point of result.points) {
+      expect(typeof point.x).toBe('number')
+      expect(typeof point.y).toBe('number')
+    }
+  })
+
+  it('diagonal grid produces more points than vertical for same mapSamples', () => {
+    const vertical = createMap({ width: 200, height: 100, mapSamples: 2000, grid: 'vertical' })
+    const diagonal = createMap({ width: 200, height: 100, mapSamples: 2000, grid: 'diagonal' })
+    expect(diagonal.points.length).toBeGreaterThan(vertical.points.length)
+  })
+
+  it('diagonal grid points stay within map dimensions', () => {
+    const width = 200
+    const height = 100
+    const { points } = createMap({ width, height, grid: 'diagonal' })
+    for (const point of points) {
+      expect(point.x).toBeGreaterThanOrEqual(0)
+      expect(point.x).toBeLessThanOrEqual(width)
+      expect(point.y).toBeGreaterThanOrEqual(0)
+      expect(point.y).toBeLessThanOrEqual(height)
+    }
+  })
+
+  it('default behavior (no grid option) is unchanged', () => {
+    const withDefault = createMap({ width: 200, height: 100, mapSamples: 2000 })
+    const withVertical = createMap({ width: 200, height: 100, mapSamples: 2000, grid: 'vertical' })
+    expect(withDefault.points).toEqual(withVertical.points)
+  })
+
+  it('cache distinguishes vertical from diagonal', () => {
+    const vertical = createMap({ width: 200, height: 100, mapSamples: 2000, grid: 'vertical' })
+    const diagonal = createMap({ width: 200, height: 100, mapSamples: 2000, grid: 'diagonal' })
+    expect(vertical.points).not.toEqual(diagonal.points)
+  })
+
+  it('addMarkers works with diagonal grid', () => {
+    const { addMarkers } = createMap({ width: 200, height: 100, grid: 'diagonal' })
+    const markers = addMarkers([
+      { lat: 40.7128, lng: -74.006 },
+      { lat: 51.5074, lng: -0.1278 },
+    ])
+    expect(markers).toHaveLength(2)
+    for (const marker of markers) {
+      expect(typeof marker.x).toBe('number')
+      expect(typeof marker.y).toBe('number')
+      expect(Number.isFinite(marker.x)).toBe(true)
+      expect(Number.isFinite(marker.y)).toBe(true)
+    }
+  })
+})
+
 describe('DEFAULT_WORLD_REGION', () => {
   it('has valid latitude bounds', () => {
     expect(DEFAULT_WORLD_REGION.lat.min).toBeLessThan(
