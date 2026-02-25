@@ -208,6 +208,7 @@ interface GetMapPoints
   extends Omit<CreateMapOptions, 'markers' | 'mapSamples'> {
   rows: number
   columns: number
+  grid?: 'vertical' | 'diagonal'
 }
 
 /** @internal */
@@ -219,6 +220,7 @@ export const getMapPoints = ({
   columns,
   region,
   radius = 0.3,
+  grid = 'vertical',
 }: GetMapPoints) => {
   let geojson: GeoJSON = geojsonWorld as GeoJSON
   if (countries.length > 0) {
@@ -289,7 +291,11 @@ export const getMapPoints = ({
     const my = Y_MAX - gridY * yScaleInv
 
     for (let col = 0; col < columns; col++) {
-      const gridX = margin + col * colScale
+      let gridX = margin + col * colScale
+      if (grid === 'diagonal' && row % 2 === 0) {
+        gridX += colScale / 2
+      }
+      if (gridX > width - margin) continue
       const mx = gridX * xScaleInv + X_MIN
 
       if (insideMercator(mx, my, prepared)) {

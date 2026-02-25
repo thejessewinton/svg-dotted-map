@@ -8,6 +8,7 @@ interface CacheEntry {
   rows: number
   columns: number
   radius: number
+  grid: 'vertical' | 'diagonal'
   value: MapPointsResult
 }
 
@@ -48,6 +49,7 @@ export const pointsCache = {
     rows: number,
     columns: number,
     radius: number,
+    grid: 'vertical' | 'diagonal',
   ): MapPointsResult | undefined {
     if (!cached) return undefined
     if (
@@ -56,6 +58,7 @@ export const pointsCache = {
       cached.rows === rows &&
       cached.columns === columns &&
       cached.radius === radius &&
+      cached.grid === grid &&
       arraysEqual(cached.countries, countries) &&
       regionsEqual(cached.region, region)
     ) {
@@ -72,8 +75,9 @@ export const pointsCache = {
     rows: number,
     columns: number,
     radius: number,
+    grid: 'vertical' | 'diagonal',
     value: MapPointsResult,
   ): void {
-    cached = { height, width, countries, region, rows, columns, radius, value }
+    cached = { height, width, countries, region, rows, columns, radius, grid, value }
   },
 }
